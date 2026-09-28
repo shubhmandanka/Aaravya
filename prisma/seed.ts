@@ -1,12 +1,12 @@
 import { PrismaPg } from "@prisma/adapter-pg";
 import { PrismaClient, ConditionCategory, MediaCategory, MediaType } from "../src/generated/prisma";
-import bcrypt from "bcryptjs";
 
 import conditionsData from "./seed-data/conditions.json";
 import doctorsData from "./seed-data/doctors.json";
 import locationData from "./seed-data/location.json";
 import faqsData from "./seed-data/faqs.json";
 import mediaVideosData from "./seed-data/media-videos.json";
+import { seedCostEstimator } from "../src/lib/cost-estimator-seed";
 
 const adapter = new PrismaPg({ connectionString: process.env.DATABASE_URL });
 const prisma = new PrismaClient({ adapter });
@@ -54,18 +54,6 @@ function slugify(input: string) {
 }
 
 async function main() {
-  console.log("Seeding admin user...");
-  const adminPasswordHash = await bcrypt.hash("ChangeMe123!", 10);
-  await prisma.adminUser.upsert({
-    where: { email: "admin@aaravyahospital.com" },
-    update: {},
-    create: {
-      email: "admin@aaravyahospital.com",
-      passwordHash: adminPasswordHash,
-      name: "Aaravya Admin",
-    },
-  });
-
   console.log("Seeding location...");
   await prisma.location.deleteMany({});
   await prisma.location.create({ data: locationData });
@@ -91,9 +79,11 @@ async function main() {
 
   console.log(`Seeding ${doctorsData.length} doctors...`);
   const doctorIdBySlug = new Map<string, string>();
-  for (const doctor of doctorsData as Array<Record<string, unknown>>) {
+  for (const [i, raw] of (doctorsData as Array<Record<string, unknown>>).entries()) {
+    // doctors.json is in display order: Dr. Deep Prajapati, then Dr. Dipti Prajapati.
+    const doctor = { ...raw, sortOrder: i + 1 };
     const created = await prisma.doctor.upsert({
-      where: { slug: doctor.slug as string },
+      where: { slug: raw.slug as string },
       update: doctor as never,
       create: doctor as never,
     });
@@ -262,6 +252,9 @@ async function main() {
   }
   console.log(`Created ${mediaItems.length} media items.`);
 
+  console.log("Seeding cost estimator (create-only)...");
+  console.log(`Created ${await seedCostEstimator(prisma)} cost estimator rows.`);
+
   console.log(
     "\nNote: patient testimonial quotes/captions were never captured in the legacy site's markup " +
       "(images/videos have no attached patient names or quote text there), so the Testimonial table " +
@@ -269,7 +262,10 @@ async function main() {
   );
 
   console.log("Seed complete.");
-  console.log(`Admin login: admin@aaravyahospital.com / ChangeMe123! (change before any real deploy)`);
+  console.log(
+    "Admin login is provisioned separately via Supabase Auth — run " +
+      "`npx tsx scripts/create-admin-user.ts <email> <password>` to create it."
+  );
 }
 
 main()

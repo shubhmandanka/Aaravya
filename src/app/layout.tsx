@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Outfit, Inter, IBM_Plex_Mono } from "next/font/google";
+import { MotionConfig } from "framer-motion";
 import "./globals.css";
 
 const outfit = Outfit({
@@ -35,7 +36,12 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       lang="en"
       className={`${outfit.variable} ${inter.variable} ${plexMono.variable} h-full antialiased`}
     >
-      <body className="min-h-full flex flex-col font-body">{children}</body>
+      <body className="min-h-full flex flex-col font-body">
+        {/* reducedMotion="user" makes every Framer Motion animation in the
+            tree respect the visitor's OS-level prefers-reduced-motion
+            setting automatically -- see src/lib/motion.ts */}
+        <MotionConfig reducedMotion="user">{children}</MotionConfig>
+      </body>
     </html>
   );
 }

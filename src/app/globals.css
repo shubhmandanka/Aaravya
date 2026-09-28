@@ -4,6 +4,17 @@
 
 @custom-variant dark (&:is(.dark *));
 
+/* ==========================================================================
+   Aaravya Hospital -- design tokens
+   Brand colors extracted directly from the logo (public/brand/logo.png):
+   forest #34603D, terracotta #C77632, sage #8A9B5D.
+   Each gets a 50-950 tonal ramp for tints/shades; the flat brand hex is also
+   kept as the "-DEFAULT" step for places that need exact logo fidelity.
+   Every text/background pairing used below has been checked against WCAG AA
+   (4.5:1 normal text, 3:1 large text/UI) -- the step actually wired into a
+   text-bearing token is chosen to pass.
+   ========================================================================== */
+
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
@@ -12,6 +23,47 @@
   --font-heading: var(--font-heading);
   --color-brand: var(--brand);
   --color-brand-foreground: var(--brand-foreground);
+
+  /* brand ramp exposed as Tailwind utilities: bg-forest-600, text-terracotta-700, etc. */
+  --color-forest-50: var(--brand-forest-50);
+  --color-forest-100: var(--brand-forest-100);
+  --color-forest-200: var(--brand-forest-200);
+  --color-forest-300: var(--brand-forest-300);
+  --color-forest-400: var(--brand-forest-400);
+  --color-forest-500: var(--brand-forest-500);
+  --color-forest-600: var(--brand-forest-600);
+  --color-forest-700: var(--brand-forest-700);
+  --color-forest-800: var(--brand-forest-800);
+  --color-forest-900: var(--brand-forest-900);
+  --color-forest-950: var(--brand-forest-950);
+  --color-forest: var(--brand-forest);
+
+  --color-terracotta-50: var(--brand-terracotta-50);
+  --color-terracotta-100: var(--brand-terracotta-100);
+  --color-terracotta-200: var(--brand-terracotta-200);
+  --color-terracotta-300: var(--brand-terracotta-300);
+  --color-terracotta-400: var(--brand-terracotta-400);
+  --color-terracotta-500: var(--brand-terracotta-500);
+  --color-terracotta-600: var(--brand-terracotta-600);
+  --color-terracotta-700: var(--brand-terracotta-700);
+  --color-terracotta-800: var(--brand-terracotta-800);
+  --color-terracotta-900: var(--brand-terracotta-900);
+  --color-terracotta-950: var(--brand-terracotta-950);
+  --color-terracotta: var(--brand-terracotta);
+
+  --color-sage-50: var(--brand-sage-50);
+  --color-sage-100: var(--brand-sage-100);
+  --color-sage-200: var(--brand-sage-200);
+  --color-sage-300: var(--brand-sage-300);
+  --color-sage-400: var(--brand-sage-400);
+  --color-sage-500: var(--brand-sage-500);
+  --color-sage-600: var(--brand-sage-600);
+  --color-sage-700: var(--brand-sage-700);
+  --color-sage-800: var(--brand-sage-800);
+  --color-sage-900: var(--brand-sage-900);
+  --color-sage-950: var(--brand-sage-950);
+  --color-sage: var(--brand-sage);
+
   --color-sidebar-ring: var(--sidebar-ring);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
@@ -41,6 +93,17 @@
   --color-popover: var(--popover);
   --color-card-foreground: var(--card-foreground);
   --color-card: var(--card);
+
+  /* admin-only semantic status colors, kept separate from the public brand palette */
+  --color-status-success-bg: var(--status-success-bg);
+  --color-status-success-text: var(--status-success-text);
+  --color-status-warning-bg: var(--status-warning-bg);
+  --color-status-warning-text: var(--status-warning-text);
+  --color-status-info-bg: var(--status-info-bg);
+  --color-status-info-text: var(--status-info-text);
+  --color-status-danger-bg: var(--status-danger-bg);
+  --color-status-danger-text: var(--status-danger-text);
+
   --radius-sm: calc(var(--radius) * 0.6);
   --radius-md: calc(var(--radius) * 0.8);
   --radius-lg: var(--radius);
@@ -51,80 +114,168 @@
 }
 
 :root {
-  --background: #ffffff;
-  --foreground: #232b4d;
-  --card: #ffffff;
-  --card-foreground: #232b4d;
-  --popover: #ffffff;
-  --popover-foreground: #232b4d;
-  --primary: #5c7a2e;
-  --primary-foreground: #ffffff;
-  --secondary: #e7f4f1;
-  --secondary-foreground: #0e5c53;
-  --muted: #f3f5ec;
-  --muted-foreground: #6e7568;
-  --accent: #eaf0dc;
-  --accent-foreground: #232b4d;
-  --destructive: oklch(0.577 0.245 27.325);
-  --border: #e1e7d6;
-  --input: #e1e7d6;
-  --ring: #5c7a2e;
-  --chart-1: oklch(0.87 0 0);
-  --chart-2: oklch(0.556 0 0);
-  --chart-3: oklch(0.439 0 0);
-  --chart-4: oklch(0.371 0 0);
-  --chart-5: oklch(0.269 0 0);
-  --radius: 0.625rem;
-  --brand: #7b9a40;
-  --brand-foreground: #10170a;
+  /* ---- Brand ramps, derived from the logo (public/brand/logo.png), WCAG-checked ---- */
+  --brand-forest-50: #F3F6F4;
+  --brand-forest-100: #E7EEE9;
+  --brand-forest-200: #CADDCE;
+  --brand-forest-300: #A8C8AE;
+  --brand-forest-400: #7BB787;
+  --brand-forest-500: #569F65;
+  --brand-forest-600: #447E50; /* white text 4.83:1 -- passes AA */
+  --brand-forest-700: #36633F; /* white text 6.97:1 -- primary button bg */
+  --brand-forest-800: #294C30;
+  --brand-forest-900: #1C3621;
+  --brand-forest-950: #122115;
+  --brand-forest: #34603D; /* exact logo hex */
 
-  /* Admin sidebar is deliberately always-dark navy, independent of the light/dark toggle. */
-  --sidebar: #1c2359;
-  --sidebar-foreground: #f3f4f2;
-  --sidebar-primary: #7b9a40;
-  --sidebar-primary-foreground: #10170a;
-  --sidebar-accent: #2a3470;
-  --sidebar-accent-foreground: #f3f4f2;
-  --sidebar-border: #2a3470;
-  --sidebar-ring: #7b9a40;
+  --brand-terracotta-50: #F8F5F1;
+  --brand-terracotta-100: #F1EAE4;
+  --brand-terracotta-200: #E7D2C0;
+  --brand-terracotta-300: #D8B598;
+  --brand-terracotta-400: #D6945C;
+  --brand-terracotta-500: #C47431;
+  --brand-terracotta-600: #9B5C27; /* white text 5.31:1 -- CTA button bg */
+  --brand-terracotta-700: #7A491F; /* white text 7.50:1 -- CTA hover */
+  --brand-terracotta-800: #5E3818;
+  --brand-terracotta-900: #42270F;
+  --brand-terracotta-950: #2A1809;
+  --brand-terracotta: #C77632; /* exact logo hex */
+
+  --brand-sage-50: #F5F6F3;
+  --brand-sage-100: #ECEDE8;
+  --brand-sage-200: #D7DCCC;
+  --brand-sage-300: #BEC5AA;
+  --brand-sage-400: #A5B280;
+  --brand-sage-500: #88995C;
+  --brand-sage-600: #6C7949; /* white text 4.70:1 -- passes AA */
+  --brand-sage-700: #556039; /* white text 6.73:1 -- text-bearing sage surfaces */
+  --brand-sage-800: #41492C;
+  --brand-sage-900: #2E341E;
+  --brand-sage-950: #1D2013;
+  --brand-sage: #8A9B5D; /* exact logo hex -- decorative/large use only, fails AA for white text */
+
+  /* ---- Warm neutrals ---- */
+  --warm-bg: #FAF8F3;
+  --warm-surface: #FFFFFF;
+  --warm-text: #2A2620;
+  --warm-text-muted: #6B655C; /* 5.43:1 on warm-bg, 5.77:1 on white -- passes AA */
+  --warm-border: #E7E2D9;
+
+  /* ---- shadcn/Radix semantic tokens, remapped to the brand palette ---- */
+  --background: var(--warm-bg);
+  --foreground: var(--warm-text);
+  --card: var(--warm-surface);
+  --card-foreground: var(--warm-text);
+  --popover: var(--warm-surface);
+  --popover-foreground: var(--warm-text);
+  --primary: var(--brand-forest-700);
+  --primary-foreground: #FFFFFF;
+  --secondary: var(--brand-sage-100);
+  --secondary-foreground: var(--brand-sage-800);
+  --muted: var(--brand-sage-50);
+  --muted-foreground: var(--warm-text-muted);
+  --accent: var(--brand-terracotta-50);
+  --accent-foreground: var(--brand-terracotta-700);
+  --destructive: oklch(0.577 0.245 27.325);
+  --border: var(--warm-border);
+  --input: var(--warm-border);
+  --ring: var(--brand-forest-500);
+  --chart-1: var(--brand-forest-500);
+  --chart-2: var(--brand-terracotta-500);
+  --chart-3: var(--brand-sage-500);
+  --chart-4: var(--brand-forest-300);
+  --chart-5: var(--brand-terracotta-300);
+  --radius: 0.75rem;
+
+  /* the standout CTA token ("Book an Appointment" etc.) -- terracotta, used sparingly on purpose */
+  --brand: var(--brand-terracotta-600);
+  --brand-foreground: #FFFFFF;
+
+  /* admin-only semantic status colors -- light bg + dark text, always passes AA regardless of size */
+  --status-success-bg: #DCFCE7;
+  --status-success-text: #166534; /* 6.49:1 */
+  --status-warning-bg: #FEF3C7;
+  --status-warning-text: #92400E; /* 6.37:1 */
+  --status-info-bg: #DBEAFE;
+  --status-info-text: #1D4ED8;
+  --status-danger-bg: #FEE2E2;
+  --status-danger-text: #991B1B; /* 6.80:1 */
+
+  /* Admin sidebar is deliberately a separate, non-brand slate/blue palette --
+     independent of the light/dark toggle -- so staff never confuse admin
+     chrome with the public site. */
+  --sidebar: #0F172A;
+  --sidebar-foreground: #F1F5F9;
+  --sidebar-primary: #2563EB;
+  --sidebar-primary-foreground: #FFFFFF;
+  --sidebar-accent: #1E293B;
+  --sidebar-accent-foreground: #F1F5F9;
+  --sidebar-border: #1E293B;
+  --sidebar-ring: #3B82F6;
 }
 
 .dark {
-  --background: #12151d;
-  --foreground: #e7e9f5;
-  --card: #1a1e29;
-  --card-foreground: #e7e9f5;
-  --popover: #1a1e29;
-  --popover-foreground: #e7e9f5;
-  --primary: #9bc24c;
+  --background: #14201a;
+  --foreground: #eef3ee;
+  --card: #1b2b22;
+  --card-foreground: #eef3ee;
+  --popover: #1b2b22;
+  --popover-foreground: #eef3ee;
+  --primary: var(--brand-forest-500);
   --primary-foreground: #10170a;
-  --secondary: #163832;
-  --secondary-foreground: #b9ede4;
-  --muted: #212939;
-  --muted-foreground: #9aa0b4;
-  --accent: #232b1b;
-  --accent-foreground: #e7e9f5;
+  --secondary: #223326;
+  --secondary-foreground: var(--brand-sage-200);
+  --muted: #1e2b22;
+  --muted-foreground: #a9b3a6;
+  --accent: #2b241c;
+  --accent-foreground: var(--brand-terracotta-300);
   --destructive: oklch(0.704 0.191 22.216);
-  --border: #313a52;
-  --input: #313a52;
-  --ring: #9bc24c;
-  --chart-1: oklch(0.87 0 0);
-  --chart-2: oklch(0.556 0 0);
-  --chart-3: oklch(0.439 0 0);
-  --chart-4: oklch(0.371 0 0);
-  --chart-5: oklch(0.269 0 0);
-  --brand: #9bc24c;
+  --border: #2c3c32;
+  --input: #2c3c32;
+  --ring: var(--brand-forest-400);
+  --chart-1: var(--brand-forest-400);
+  --chart-2: var(--brand-terracotta-400);
+  --chart-3: var(--brand-sage-400);
+  --chart-4: var(--brand-forest-300);
+  --chart-5: var(--brand-terracotta-300);
+  --brand: var(--brand-terracotta-500);
   --brand-foreground: #10170a;
 
-  /* Same fixed navy sidebar as light mode — see note above. */
-  --sidebar: #1c2359;
-  --sidebar-foreground: #f3f4f2;
-  --sidebar-primary: #7b9a40;
-  --sidebar-primary-foreground: #10170a;
-  --sidebar-accent: #2a3470;
-  --sidebar-accent-foreground: #f3f4f2;
-  --sidebar-border: #2a3470;
-  --sidebar-ring: #7b9a40;
+  /* Same fixed slate/blue sidebar as light mode -- see note above. */
+  --sidebar: #0F172A;
+  --sidebar-foreground: #F1F5F9;
+  --sidebar-primary: #2563EB;
+  --sidebar-primary-foreground: #FFFFFF;
+  --sidebar-accent: #1E293B;
+  --sidebar-accent-foreground: #F1F5F9;
+  --sidebar-border: #1E293B;
+  --sidebar-ring: #3B82F6;
+}
+
+/* ---- Admin panel: a separate light slate/blue theme, applied via .admin-scope
+   on the dashboard's root layout. Not brand-locked on purpose (see brief):
+   optimized for a non-technical daily user, clearly distinct from the public
+   site so no one confuses which "side" of the app they're looking at. ---- */
+.admin-scope {
+  --background: #F8FAFC;
+  --foreground: #0F172A;
+  --card: #FFFFFF;
+  --card-foreground: #0F172A;
+  --popover: #FFFFFF;
+  --popover-foreground: #0F172A;
+  --primary: #2563EB;
+  --primary-foreground: #FFFFFF;
+  --secondary: #F1F5F9;
+  --secondary-foreground: #0F172A;
+  --muted: #F1F5F9;
+  --muted-foreground: #64748B; /* 4.55:1 on slate-50 -- passes AA */
+  --accent: #EFF6FF;
+  --accent-foreground: #1D4ED8;
+  --destructive: #DC2626;
+  --border: #E2E8F0;
+  --input: #E2E8F0;
+  --ring: #3B82F6;
+  --radius: 0.625rem;
 }
 
 @layer base {
@@ -136,5 +287,44 @@
   }
   html {
     @apply font-sans;
+    scroll-behavior: smooth;
+  }
+  h1,
+  h2,
+  h3,
+  h4 {
+    @apply font-heading;
+  }
+}
+
+/* Soft, warm-tinted elevation -- calm rather than a SaaS-style hard drop shadow. */
+@layer components {
+  .shadow-soft-sm {
+    box-shadow:
+      0 1px 2px rgba(41, 76, 48, 0.06),
+      0 1px 1px rgba(41, 76, 48, 0.04);
+  }
+  .shadow-soft-md {
+    box-shadow:
+      0 2px 8px rgba(41, 76, 48, 0.08),
+      0 1px 2px rgba(41, 76, 48, 0.06);
+  }
+  .shadow-soft-lg {
+    box-shadow:
+      0 12px 32px rgba(28, 54, 33, 0.12),
+      0 2px 6px rgba(28, 54, 33, 0.06);
+  }
+}
+
+/* Respect prefers-reduced-motion as a global safety net, in addition to
+   per-component Framer Motion checks (see src/lib/motion.ts). */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
   }
 }

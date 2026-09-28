@@ -1,6 +1,9 @@
-import { Button } from "@/components/ui/button";
+import { AdminForm } from "@/components/admin/admin-form";
+import { AdminSubmitButton } from "@/components/admin/submit-button";
+import type { FormState } from "@/lib/admin/actions";
 import { Textarea } from "@/components/ui/textarea";
 import { Field, ADMIN_INPUT_CLASS } from "@/components/admin/form";
+import { ImageUploadField } from "@/components/admin/image-upload-field";
 import type { Testimonial } from "@/generated/prisma";
 
 export function TestimonialForm({
@@ -9,13 +12,13 @@ export function TestimonialForm({
   conditions,
   doctors,
 }: {
-  action: (formData: FormData) => Promise<void>;
+  action: (state: FormState, formData: FormData) => Promise<FormState>;
   testimonial?: Testimonial;
   conditions: { id: string; name: string }[];
   doctors: { id: string; name: string }[];
 }) {
   return (
-    <form action={action} className="flex flex-col gap-5">
+    <AdminForm action={action} className="flex flex-col gap-5">
       <div className="grid gap-5 sm:grid-cols-2">
         <Field label="Patient Name (optional)" htmlFor="patientName">
           <input id="patientName" name="patientName" defaultValue={testimonial?.patientName ?? ""} className={ADMIN_INPUT_CLASS} />
@@ -46,9 +49,7 @@ export function TestimonialForm({
       </div>
 
       <div className="grid gap-5 sm:grid-cols-2">
-        <Field label="Image Path" htmlFor="imageUrl">
-          <input id="imageUrl" name="imageUrl" defaultValue={testimonial?.imageUrl ?? ""} className={ADMIN_INPUT_CLASS} />
-        </Field>
+        <ImageUploadField name="imageUrl" label="Photo" currentImageUrl={testimonial?.imageUrl} />
         <Field label="YouTube Video ID" htmlFor="videoUrl">
           <input id="videoUrl" name="videoUrl" defaultValue={testimonial?.videoUrl ?? ""} className={ADMIN_INPUT_CLASS} />
         </Field>
@@ -88,9 +89,9 @@ export function TestimonialForm({
         </label>
       </div>
 
-      <Button type="submit" size="xl" className="mt-2 bg-brand text-brand-foreground hover:bg-brand/90">
+      <AdminSubmitButton size="xl" className="mt-2 bg-primary text-primary-foreground hover:bg-primary/90">
         Save Testimonial
-      </Button>
-    </form>
+      </AdminSubmitButton>
+    </AdminForm>
   );
 }

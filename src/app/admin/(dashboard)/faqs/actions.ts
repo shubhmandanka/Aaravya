@@ -1,43 +1,52 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
-
-function toStringOrNull(value: FormDataEntryValue | null): string | null {
-  const s = String(value ?? "").trim();
-  return s.length > 0 ? s : null;
-}
+import {
+  AdminFormError,
+  adminAction,
+  requiredString,
+  revalidatePublicSite,
+  toIntOrNull,
+  toStringOrNull,
+  type FormState,
+} from "@/lib/admin/actions";
+import { FAQ_PAGE_CONTEXTS } from "./page-contexts";
 
 function readFaqForm(formData: FormData) {
+  const pageContext = String(formData.get("pageContext") ?? "");
+  if (!FAQ_PAGE_CONTEXTS.some((c) => c.value === pageContext)) throw new AdminFormError("Choose where this FAQ appears.");
   return {
-    question: String(formData.get("question")).trim(),
-    answer: String(formData.get("answer")).trim(),
+    question: requiredString(formData, "question", "Question"),
+    answer: requiredString(formData, "answer", "Answer"),
     conditionId: toStringOrNull(formData.get("conditionId")),
     topic: toStringOrNull(formData.get("topic")),
-    pageContext: String(formData.get("pageContext")).trim() || "faqs-page",
-    sortOrder: Number(formData.get("sortOrder")) || 0,
+    pageContext,
+    sortOrder: toIntOrNull(formData.get("sortOrder")) ?? 0,
   };
 }
 
-export async function createFaq(formData: FormData) {
-  const data = readFaqForm(formData);
-  await prisma.faq.create({ data });
-  revalidatePath("/admin/faqs");
-  revalidatePath("/faqs");
+export async function createFaq(_state: FormState, formData: FormData): Promise<FormState> {
+  const result = await adminAction(async () => {
+    await prisma.faq.create({ data: readFaqForm(formData) });
+    revalidatePublicSite();
+  });
+  if (result) return result;
   redirect("/admin/faqs");
 }
 
-export async function updateFaq(id: string, formData: FormData) {
-  const data = readFaqForm(formData);
-  await prisma.faq.update({ where: { id }, data });
-  revalidatePath("/admin/faqs");
-  revalidatePath("/faqs");
+export async function updateFaq(id: string, _state: FormState, formData: FormData): Promise<FormState> {
+  const result = await adminAction(async () => {
+    await prisma.faq.update({ where: { id }, data: readFaqForm(formData) });
+    revalidatePublicSite();
+  });
+  if (result) return result;
   redirect("/admin/faqs");
 }
 
-export async function deleteFaq(id: string) {
-  await prisma.faq.delete({ where: { id } });
-  revalidatePath("/admin/faqs");
-  revalidatePath("/faqs");
+export async function deleteFaq(id: string): Promise<FormState> {
+  return adminAction(async () => {
+    await prisma.faq.delete({ where: { id } });
+    revalidatePublicSite();
+  });
 }

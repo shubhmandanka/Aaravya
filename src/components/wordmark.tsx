@@ -1,6 +1,13 @@
-import { Stethoscope } from "lucide-react";
+import Image from "next/image";
 import { cn } from "@/lib/utils";
 
+/**
+ * Real logo asset (public/brand/logo.png + logo-white.png), extracted at
+ * exact size from the brand file the client supplied. Intrinsic
+ * width/height below match the source aspect ratio (~3.3:1) so the browser
+ * can compute the right box before the image loads and CSS can resize it
+ * with just a height utility (width follows automatically).
+ */
 export function Wordmark({
   variant = "default",
   className,
@@ -10,33 +17,15 @@ export function Wordmark({
 }) {
   const inverted = variant === "inverted";
   return (
-    <span className={cn("inline-flex items-center gap-3", className)}>
-      <span
-        className={cn(
-          "flex size-11 shrink-0 items-center justify-center rounded-lg",
-          inverted ? "bg-white/15 text-white" : "bg-brand/10 text-brand"
-        )}
-      >
-        <Stethoscope className="size-6" />
-      </span>
-      <span className="flex flex-col leading-none">
-        <span
-          className={cn(
-            "font-heading text-xl font-semibold",
-            inverted ? "text-white" : "text-foreground"
-          )}
-        >
-          Aaravya
-        </span>
-        <span
-          className={cn(
-            "mt-1 font-mono text-xs uppercase tracking-wider",
-            inverted ? "text-white/55" : "text-muted-foreground"
-          )}
-        >
-          Hospital
-        </span>
-      </span>
+    <span className={cn("inline-flex items-center", className)}>
+      <Image
+        src={inverted ? "/brand/logo-white.png" : "/brand/logo.png"}
+        alt="Aaravya Hospital"
+        width={188}
+        height={57}
+        priority
+        className="h-9 w-auto sm:h-10"
+      />
     </span>
   );
 }

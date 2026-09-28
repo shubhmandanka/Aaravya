@@ -33,8 +33,11 @@ yarn-debug.log*
 yarn-error.log*
 .pnpm-debug.log*
 
-# env files (can opt-in for committing if needed)
+# env files - contain real secrets in a real deployment; the committed
+# defaults here are dev-only Docker Compose values, but this should not be
+# relied on. Keep .env.example (checked in) as the template instead.
 .env*
+!.env.example
 
 # vercel
 .vercel
@@ -42,3 +45,5 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+aaravya_backup.dump

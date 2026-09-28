@@ -11,7 +11,7 @@ Rebuild of the static site at `../Existing-code/aaravya/` (live at aaravyahospit
 > - [x] Step 5 — Anonymous Video Consultation Hub: `/anonymous-consultation` + 5 category pages (Students/Women/IT Professionals/Police & Defence/Others) with tailored, destigmatizing copy, confidentiality badge throughout, nickname-only request form (no full name field), female-doctor preference on the Women page, WhatsApp as an alternative entry point, and a plain-language `/privacy` page. Reuses the same `Appointment` table (`isAnonymous: true`) — verified end-to-end: nickname-only row created, correct category, female-doctor preference correctly resolved to Dr. Dipti Prajapati.
 > - [x] Step 6 — Rule-based AI symptom checker (`/symptom-checker`, 4-question flow, deterministic urgency triage, sessions logged to `SymptomCheckSession`) + site-wide chat widget (menu-driven: check symptoms / ask a question / book / talk to a coordinator, FAQ search backed by the real `Faq` table, red-flag keyword escalation). Replaced the old floating WhatsApp/call buttons with this single widget. Verified end-to-end via browser automation: mild symptoms → self-care, severe/heavy-bleeding → urgent with phone CTA, chat FAQ search returns real matches, red-flag phrases immediately escalate.
 > - [x] Step 7 — SEO/GEO layer: `Hospital` schema site-wide, `MedicalWebPage`+`FAQPage` on every condition page, `Physician` on doctor pages, `MedicalProcedure` on procedure pages, `FAQPage` on `/faqs` — all generated straight from the same DB fields the visible page renders, so structured data can't drift from visible content. Dynamic `sitemap.xml` (63 URLs) and `robots.txt` explicitly allow-listing GPTBot/Google-Extended/PerplexityBot/ClaudeBot. Also wired in the site's real GTM/GA4 analytics IDs (recovered from the legacy site audit) via `next/script`. Verified: all JSON-LD blocks parse as valid JSON across every page type, full site route sweep clean.
-> - [x] Step 8 — Admin panel: Auth.js (Credentials + bcrypt) protecting `/admin/*` via Next.js 16's `proxy.ts` (the renamed `middleware.ts` convention — also now defaults to the Node.js runtime). Full CRUD for Doctors, Conditions, Procedures, FAQs, Testimonials, Health Library articles, Cost Estimator rules, and Locations; a single Site Settings page (phone/WhatsApp/email/socials/analytics IDs); an Appointments/Leads dashboard with status filters and inline status updates. Login at `/admin/login` (`admin@aaravyahospital.com` / `ChangeMe123!` — **must change before any real deploy**). Verified end-to-end via browser automation across every resource: create, edit, delete, and appointment status changes all confirmed against the real database.
+> - [x] Step 8 — Admin panel: Supabase Auth (email/password) protecting `/admin/*` via Next.js 16's `proxy.ts` (the renamed `middleware.ts` convention — also now defaults to the Node.js runtime), gating on `supabase.auth.getClaims()` rather than a forgeable session cookie. Full CRUD for Doctors, Conditions, Procedures, FAQs, Testimonials, Health Library articles, Cost Estimator rules, and Locations; a single Site Settings page (phone/WhatsApp/email/socials/analytics IDs); an Appointments/Leads dashboard with status filters and inline status updates. Login at `/admin/login` — there is no seeded credential; provision the real admin account with `npx tsx scripts/create-admin-user.ts <email> <password>` (requires `SUPABASE_SERVICE_ROLE_KEY`). Verified end-to-end via browser automation across every resource: create, edit, delete, and appointment status changes all confirmed against the real database.
 > - [ ] Step 9 — Full local QA pass against the verification checklist.
 
 ---
@@ -35,7 +35,7 @@ Everything runs locally first via Docker Compose. Hosting/deployment is a delibe
 | Styling/UI | Tailwind CSS v4 (CSS-first config, no `tailwind.config.js`) + shadcn/ui (Radix) + Framer Motion | Fast, accessible, consistent design system with room for polish |
 | Database | PostgreSQL | Mature, free-tier-friendly (Neon/Supabase later), pairs well with Prisma |
 | ORM | Prisma | Typed schema, migrations, easy seeding |
-| Admin auth | Auth.js (NextAuth) Credentials provider | Simple, no external auth vendor needed |
+| Admin auth | Supabase Auth (email/password, `@supabase/ssr`) | Managed auth — no password hashing/storage of our own to maintain |
 | Forms/validation | react-hook-form + Zod | Shared client/server validation |
 | Rich text | Tiptap | Lets staff edit long-form content without touching code |
 | Email | Nodemailer + MailHog (dev) | Real transactional email later; MailHog gives a local inbox to test against now |
@@ -91,7 +91,7 @@ web/
 
 ## 5. Data model (summary — see `prisma/schema.prisma` once written)
 
-`Doctor`, `Condition`, `Procedure`, `LocationLandingPage` (city/keyword SEO variants of a Condition — see §7), `Faq`, `Testimonial`, `MediaItem` (gallery + testimonial images/videos, one model with a `category` filter), `Appointment` (unified booking + anonymous requests), `SymptomCheckSession`, `BlogPost`, `CostEstimatorRule`, `Location` (branch/contact info), `SiteSetting`, `AdminUser`.
+`Doctor`, `Condition`, `Procedure`, `LocationLandingPage` (city/keyword SEO variants of a Condition — see §7), `Faq`, `Testimonial`, `MediaItem` (gallery + testimonial images/videos, one model with a `category` filter), `Appointment` (unified booking + anonymous requests), `SymptomCheckSession`, `BlogPost`, `CostEstimatorRule`, `Location` (branch/contact info), `SiteSetting`. Admin accounts live in Supabase Auth, not Prisma.
 
 ## 6. Brand tokens (confirmed from the live static site)
 
@@ -153,3 +153,4 @@ Admin panel: `http://localhost:3000/admin` (seeded credentials documented in `pr
 - [ ] Admin login works; editing content reflects immediately on the public site
 - [ ] `sitemap.xml` / `robots.txt` generated and correct
 - [ ] `tsc --noEmit` and lint pass
+- [ ] Before any real deployment: admin accounts provisioned in Supabase Auth are the real ones you intend to keep (no test/throwaway logins left active), and `.env` values point at real production DB/SMTP/Supabase project (see `.env.example`)

@@ -7,19 +7,25 @@ services:
     restart: unless-stopped
     ports:
       - "3000:3000"
+    # Real values (DATABASE_URL/DIRECT_URL pointed at Supabase, the
+    # Supabase project keys, etc.) come from the project's own .env file —
+    # NOT from a hardcoded value here. Docker Compose loads env_file entries
+    # into the container's real environment (unlike Next's own .env loader,
+    # which silently ignores .env values for anything already set in the
+    # environment), so this is the one place those values must live for the
+    # `app` container. SMTP_* below intentionally override .env's host-side
+    # SMTP_HOST/PORT: inside the Compose network the mail sink is reachable
+    # by its service name, not localhost.
+    env_file:
+      - .env
     environment:
-      DATABASE_URL: postgresql://aaravya:aaravya_local_pw@db:5432/aaravya
-      NEXTAUTH_SECRET: dev-only-secret-change-before-any-real-deploy
-      NEXTAUTH_URL: http://localhost:3000
       SMTP_HOST: mailhog
       SMTP_PORT: "1025"
       SMTP_FROM: "Aaravya Hospital <no-reply@aaravyahospital.local>"
     volumes:
       - ./:/app
+      - app_node_modules:/app/node_modules
       - app_next_cache:/app/.next
-    depends_on:
-      db:
-        condition: service_healthy
 
   db:
     image: postgres:16-alpine
@@ -29,7 +35,7 @@ services:
       POSTGRES_USER: aaravya
       POSTGRES_PASSWORD: aaravya_local_pw
     ports:
-      - "5433:5432"
+      - "5434:5432"
     volumes:
       - db_data:/var/lib/postgresql/data
     healthcheck:

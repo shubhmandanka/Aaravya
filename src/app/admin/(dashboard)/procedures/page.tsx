@@ -7,8 +7,14 @@ import { deleteProcedure } from "./actions";
 
 export default async function AdminProceduresPage() {
   const procedures = await prisma.procedure.findMany({
-    include: { condition: true },
     orderBy: { name: "asc" },
+    select: {
+      id: true,
+      name: true,
+      costMin: true,
+      costMax: true,
+      condition: { select: { name: true } },
+    },
   });
 
   return (
@@ -17,7 +23,7 @@ export default async function AdminProceduresPage() {
       <AdminTable
         columns={["Name", "Condition", "Cost Range", ""]}
         rows={procedures.map((p) => [
-          <Link key="name" href={`/admin/procedures/${p.id}`} className="font-medium hover:text-brand">
+          <Link key="name" href={`/admin/procedures/${p.id}`} className="font-medium hover:text-primary">
             {p.name}
           </Link>,
           p.condition.name,

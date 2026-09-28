@@ -1,19 +1,22 @@
-import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Field, ADMIN_INPUT_CLASS } from "@/components/admin/form";
+import { AdminForm } from "@/components/admin/admin-form";
+import { AdminSubmitButton } from "@/components/admin/submit-button";
+import type { FormState } from "@/lib/admin/actions";
 import type { Faq } from "@/generated/prisma";
+import { FAQ_PAGE_CONTEXTS } from "./page-contexts";
 
 export function FaqForm({
   action,
   faq,
   conditions,
 }: {
-  action: (formData: FormData) => Promise<void>;
+  action: (state: FormState, formData: FormData) => Promise<FormState>;
   faq?: Faq;
   conditions: { id: string; name: string }[];
 }) {
   return (
-    <form action={action} className="flex flex-col gap-5">
+    <AdminForm action={action} className="flex flex-col gap-5">
       <Field label="Question" htmlFor="question">
         <input id="question" name="question" required defaultValue={faq?.question} className={ADMIN_INPUT_CLASS} />
       </Field>
@@ -23,7 +26,7 @@ export function FaqForm({
       </Field>
 
       <div className="grid gap-5 sm:grid-cols-2">
-        <Field label="Related Condition (optional)" htmlFor="conditionId">
+        <Field label="Related Condition (optional)" htmlFor="conditionId" help="Also shown in that condition page's FAQ section">
           <select id="conditionId" name="conditionId" defaultValue={faq?.conditionId ?? ""} className={ADMIN_INPUT_CLASS}>
             <option value="">— None —</option>
             {conditions.map((c) => (
@@ -35,8 +38,11 @@ export function FaqForm({
         </Field>
         <Field label="Page" htmlFor="pageContext">
           <select id="pageContext" name="pageContext" defaultValue={faq?.pageContext ?? "faqs-page"} className={ADMIN_INPUT_CLASS}>
-            <option value="faqs-page">FAQs page</option>
-            <option value="homepage">Homepage</option>
+            {FAQ_PAGE_CONTEXTS.map((c) => (
+              <option key={c.value} value={c.value}>
+                {c.label}
+              </option>
+            ))}
           </select>
         </Field>
       </div>
@@ -45,14 +51,14 @@ export function FaqForm({
         <Field label="Topic Tag" htmlFor="topic">
           <input id="topic" name="topic" defaultValue={faq?.topic ?? ""} className={ADMIN_INPUT_CLASS} />
         </Field>
-        <Field label="Sort Order" htmlFor="sortOrder">
-          <input id="sortOrder" name="sortOrder" type="number" defaultValue={faq?.sortOrder ?? 0} className={ADMIN_INPUT_CLASS} />
+        <Field label="Sort Order" htmlFor="sortOrder" help="Lower shows first">
+          <input id="sortOrder" name="sortOrder" type="number" step={1} defaultValue={faq?.sortOrder ?? 0} className={ADMIN_INPUT_CLASS} />
         </Field>
       </div>
 
-      <Button type="submit" size="xl" className="mt-2 bg-brand text-brand-foreground hover:bg-brand/90">
+      <AdminSubmitButton size="xl" className="mt-2 bg-primary text-primary-foreground hover:bg-primary/90">
         Save FAQ
-      </Button>
-    </form>
+      </AdminSubmitButton>
+    </AdminForm>
   );
 }

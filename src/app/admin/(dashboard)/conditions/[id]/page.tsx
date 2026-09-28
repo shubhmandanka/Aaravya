@@ -1,3 +1,4 @@
+import { DOCTOR_ORDER } from "@/lib/queries";
 import { notFound } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { AdminFormShell } from "@/components/admin/form";
@@ -8,7 +9,7 @@ export default async function EditConditionPage({ params }: { params: Promise<{ 
   const { id } = await params;
   const [condition, doctors] = await Promise.all([
     prisma.condition.findUnique({ where: { id } }),
-    prisma.doctor.findMany({ select: { id: true, name: true }, orderBy: { name: "asc" } }),
+    prisma.doctor.findMany({ select: { id: true, name: true }, orderBy: DOCTOR_ORDER }),
   ]);
   if (!condition) notFound();
 

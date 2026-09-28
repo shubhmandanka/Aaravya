@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useTransition } from "react";
 import Link from "next/link";
 import {
   MessageCircle,
@@ -12,8 +12,10 @@ import {
   X,
   ArrowLeft,
   AlertTriangle,
+  Loader2,
 } from "lucide-react";
 import { containsRedFlag } from "@/content/symptom-checker";
+import { getChatFaqsAction } from "@/lib/actions/chat";
 
 type Faq = { id: string; question: string; answer: string };
 type View = "menu" | "ask" | "coordinator";
@@ -25,13 +27,28 @@ function scoreMatch(query: string, faq: Faq): number {
   return words.reduce((score, w) => (haystack.includes(w) ? score + 1 : score), 0);
 }
 
-export function ChatWidget({ faqs, phone, whatsapp }: { faqs: Faq[]; phone: string; whatsapp: string }) {
+export function ChatWidget({ phone, whatsapp }: { phone: string; whatsapp: string }) {
   const [open, setOpen] = useState(false);
   const [view, setView] = useState<View>("menu");
   const [query, setQuery] = useState("");
   const [searched, setSearched] = useState(false);
   const [redFlag, setRedFlag] = useState(false);
   const [matches, setMatches] = useState<Faq[]>([]);
+
+  // FAQs are only needed for the "ask a question" view, so they're fetched
+  // on demand the first time that view opens rather than on every page load.
+  const [faqs, setFaqs] = useState<Faq[] | null>(null);
+  const [loadingFaqs, startLoadingFaqs] = useTransition();
+
+  function openAsk() {
+    setView("ask");
+    if (faqs === null) {
+      startLoadingFaqs(async () => {
+        const data = await getChatFaqsAction();
+        setFaqs(data);
+      });
+    }
+  }
 
   function reset() {
     setView("menu");
@@ -41,9 +58,11 @@ export function ChatWidget({ faqs, phone, whatsapp }: { faqs: Faq[]; phone: stri
     setMatches([]);
   }
 
+  const faqsLoading = loadingFaqs || faqs === null;
+
   function handleSearch(e: React.FormEvent) {
     e.preventDefault();
-    if (!query.trim()) return;
+    if (!query.trim() || faqs === null) return;
     if (containsRedFlag(query)) {
       setRedFlag(true);
       setSearched(true);
@@ -87,7 +106,7 @@ export function ChatWidget({ faqs, phone, whatsapp }: { faqs: Faq[]; phone: stri
                   <Stethoscope className="size-4 text-brand" /> Check my symptoms
                 </Link>
                 <button
-                  onClick={() => setView("ask")}
+                  onClick={openAsk}
                   className="flex items-center gap-3 rounded-xl border border-border p-3 text-left text-sm hover:border-brand hover:bg-accent"
                 >
                   <Search className="size-4 text-brand" /> Ask a question anonymously
@@ -119,18 +138,20 @@ export function ChatWidget({ faqs, phone, whatsapp }: { faqs: Faq[]; phone: stri
                     value={query}
                     onChange={(e) => setQuery(e.target.value)}
                     placeholder="e.g. is piles surgery painful?"
-                    className="w-full rounded-lg border border-input bg-background px-3 py-2 text-sm outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50"
+                    disabled={faqsLoading}
+                    className="w-full rounded-lg border border-input bg-background px-3 py-2 text-sm outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 disabled:opacity-60"
                   />
                   <button
                     type="submit"
-                    className="shrink-0 rounded-lg bg-brand px-3 py-2 text-brand-foreground"
+                    disabled={faqsLoading}
+                    className="flex shrink-0 items-center justify-center rounded-lg bg-brand px-3 py-2 text-brand-foreground disabled:opacity-60"
                     aria-label="Search"
                   >
-                    <Search className="size-4" />
+                    {faqsLoading ? <Loader2 className="size-4 animate-spin" /> : <Search className="size-4" />}
                   </button>
                 </form>
                 <p className="mt-2 text-[0.68rem] text-muted-foreground">
-                  No name or email needed to ask.
+                  {faqsLoading ? "Loading questions…" : "No name or email needed to ask."}
                 </p>
 
                 {searched && redFlag && (

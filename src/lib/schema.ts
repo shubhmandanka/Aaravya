@@ -39,13 +39,13 @@ export function physicianSchema(doctor: {
   photoUrl?: string | null;
   registrationNumber?: string | null;
 }) {
-  const image = legacyAsset(doctor.photoUrl);
+  const image = absoluteImage(legacyAsset(doctor.photoUrl));
   return {
     "@context": "https://schema.org",
     "@type": "Physician",
     name: doctor.name,
     url: absoluteUrl(`/doctors/${doctor.slug}`),
-    ...(image ? { image: absoluteUrl(image) } : {}),
+    ...(image ? { image } : {}),
     medicalSpecialty: doctor.designation,
     honorificSuffix: doctor.qualifications,
     ...(doctor.registrationNumber ? { identifier: doctor.registrationNumber } : {}),
@@ -73,13 +73,54 @@ export function medicalWebPageSchema(opts: {
   };
 }
 
-export function medicalProcedureSchema(opts: { name: string; description: string; url: string }) {
+/** `image` accepts a root-relative path or an absolute URL, as returned by `legacyAsset`. */
+function absoluteImage(image: string | null | undefined) {
+  if (!image) return undefined;
+  return /^https?:\/\//.test(image) ? image : absoluteUrl(image);
+}
+
+export function medicalProcedureSchema(opts: {
+  name: string;
+  description: string;
+  url: string;
+  image?: string | null;
+}) {
+  const image = absoluteImage(opts.image);
   return {
     "@context": "https://schema.org",
     "@type": "MedicalProcedure",
     name: opts.name,
     description: opts.description,
     url: opts.url,
+    ...(image ? { image } : {}),
+  };
+}
+
+export function blogPostingSchema(opts: {
+  title: string;
+  description: string;
+  url: string;
+  image?: string | null;
+  datePublished: Date;
+  dateModified: Date;
+  reviewedByName?: string | null;
+}) {
+  const image = absoluteImage(opts.image);
+  return {
+    "@context": "https://schema.org",
+    "@type": "BlogPosting",
+    headline: opts.title,
+    description: opts.description,
+    url: opts.url,
+    mainEntityOfPage: opts.url,
+    ...(image ? { image } : {}),
+    datePublished: opts.datePublished.toISOString(),
+    dateModified: opts.dateModified.toISOString(),
+    author: { "@type": "Organization", name: "Aaravya Hospital", url: SITE_URL },
+    publisher: { "@type": "Hospital", name: "Aaravya Hospital", url: SITE_URL },
+    ...(opts.reviewedByName
+      ? { reviewedBy: { "@type": "Physician", name: opts.reviewedByName } }
+      : {}),
   };
 }
 

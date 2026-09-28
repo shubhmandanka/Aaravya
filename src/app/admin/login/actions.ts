@@ -1,22 +1,22 @@
 "use server";
 
-import { AuthError } from "next-auth";
-import { signIn } from "@/auth";
+import { redirect } from "next/navigation";
+import { createClient } from "@/lib/supabase/server";
 
 export type LoginState = { error?: string } | undefined;
 
 export async function loginAction(_prevState: LoginState, formData: FormData): Promise<LoginState> {
-  try {
-    await signIn("credentials", {
-      email: formData.get("email"),
-      password: formData.get("password"),
-      redirectTo: "/admin",
-    });
-    return undefined;
-  } catch (error) {
-    if (error instanceof AuthError) {
-      return { error: "Invalid email or password." };
-    }
-    throw error;
+  const email = formData.get("email");
+  const password = formData.get("password");
+  if (typeof email !== "string" || typeof password !== "string") {
+    return { error: "Invalid email or password." };
   }
+
+  const supabase = await createClient();
+  const { error } = await supabase.auth.signInWithPassword({ email, password });
+  if (error) {
+    return { error: "Invalid email or password." };
+  }
+
+  redirect("/admin");
 }

@@ -1,3 +1,4 @@
+import { DOCTOR_ORDER } from "@/lib/queries";
 import { notFound } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { AdminFormShell } from "@/components/admin/form";
@@ -9,7 +10,7 @@ export default async function EditProcedurePage({ params }: { params: Promise<{ 
   const [procedure, conditions, doctors] = await Promise.all([
     prisma.procedure.findUnique({ where: { id } }),
     prisma.condition.findMany({ select: { id: true, name: true }, orderBy: { name: "asc" } }),
-    prisma.doctor.findMany({ select: { id: true, name: true }, orderBy: { name: "asc" } }),
+    prisma.doctor.findMany({ select: { id: true, name: true }, orderBy: DOCTOR_ORDER }),
   ]);
   if (!procedure) notFound();
 

@@ -4,6 +4,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { CheckCircle2, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Reveal } from "@/components/site/reveal";
 import { legacyAsset } from "@/lib/assets";
 import { JsonLd } from "@/components/json-ld";
 import { absoluteUrl, faqPageSchema, medicalWebPageSchema } from "@/lib/schema";
@@ -12,6 +13,7 @@ import {
   getAllConditionSlugs,
   getConditionBySlug,
   getConditionsGroupedByCategory,
+  getContactDetails,
 } from "@/lib/queries";
 
 type TreatmentOption = { title: string; description: string };
@@ -41,9 +43,10 @@ export default async function ConditionPage({
   params: Promise<{ slug: string }>;
 }) {
   const { slug } = await params;
-  const [condition, groups] = await Promise.all([
+  const [condition, groups, contact] = await Promise.all([
     getConditionBySlug(slug),
     getConditionsGroupedByCategory(),
+    getContactDetails(),
   ]);
 
   if (!condition) notFound();
@@ -66,23 +69,23 @@ export default async function ConditionPage({
       : null;
 
   return (
-    <div className="mx-auto max-w-7xl px-6 py-12">
+    <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6 sm:py-12">
       <JsonLd data={webPageSchema} />
       {faqSchema && <JsonLd data={faqSchema} />}
       <nav className="flex items-center gap-1.5 text-xs text-muted-foreground">
-        <Link href="/conditions" className="hover:text-foreground">Conditions</Link>
+        <Link href="/conditions" className="hover:text-forest-800">Conditions</Link>
         <ChevronRight className="size-3" />
         <span>{CATEGORY_LABELS[condition.category]}</span>
         <ChevronRight className="size-3" />
         <span className="text-foreground">{condition.name}</span>
       </nav>
 
-      <div className="mt-8 grid gap-12 lg:grid-cols-[1fr_320px]">
+      <div className="mt-8 grid gap-10 lg:grid-cols-[1fr_320px] lg:gap-12">
         <div>
-          <h1 className="font-heading text-4xl font-semibold text-balance">{condition.name}</h1>
+          <h1 className="text-balance font-heading text-4xl font-semibold text-forest-900">{condition.name}</h1>
 
           {heroImage && (
-            <div className="relative mt-6 h-64 overflow-hidden rounded-2xl border border-border bg-muted/30 sm:h-80">
+            <div className="relative mt-6 h-64 overflow-hidden rounded-2xl border border-border bg-forest-50 sm:h-80">
               <Image
                 src={heroImage}
                 alt={condition.name}
@@ -95,11 +98,11 @@ export default async function ConditionPage({
           )}
 
           {/* GEO direct-answer block */}
-          <div className="mt-6 rounded-xl border border-brand/30 bg-accent p-5">
-            <p className="font-mono text-[0.7rem] uppercase tracking-wide text-brand">
+          <div className="mt-6 rounded-xl border border-terracotta-200 bg-terracotta-50 p-5">
+            <p className="font-mono text-[0.7rem] uppercase tracking-wide text-terracotta-700">
               Quick Answer
             </p>
-            <p className="mt-1.5 text-accent-foreground">{condition.directAnswer}</p>
+            <p className="mt-1.5 text-terracotta-950">{condition.directAnswer}</p>
           </div>
 
           {condition.introText && (
@@ -107,38 +110,38 @@ export default async function ConditionPage({
           )}
 
           {condition.definitionHeading && (
-            <section className="mt-10">
-              <h2 className="font-heading text-2xl font-semibold">{condition.definitionHeading}</h2>
+            <Reveal as="section" className="mt-10">
+              <h2 className="font-heading text-2xl font-semibold text-forest-900">{condition.definitionHeading}</h2>
               <p className="mt-3 text-muted-foreground">{condition.definitionText}</p>
-            </section>
+            </Reveal>
           )}
 
           {condition.symptoms.length > 0 && (
-            <section className="mt-10">
-              <h2 className="font-heading text-2xl font-semibold">
+            <Reveal as="section" className="mt-10">
+              <h2 className="font-heading text-2xl font-semibold text-forest-900">
                 Common Symptoms of {condition.name}
               </h2>
               <ul className="mt-4 grid gap-2.5 sm:grid-cols-2">
                 {condition.symptoms.map((symptom, i) => (
                   <li key={i} className="flex items-start gap-2 text-sm text-muted-foreground">
-                    <CheckCircle2 className="mt-0.5 size-4 shrink-0 text-brand" />
+                    <CheckCircle2 className="mt-0.5 size-4 shrink-0 text-terracotta-600" />
                     {symptom}
                   </li>
                 ))}
               </ul>
-            </section>
+            </Reveal>
           )}
 
           {condition.causes && (
-            <section className="mt-10">
-              <h2 className="font-heading text-2xl font-semibold">Causes &amp; Risk Factors</h2>
+            <Reveal as="section" className="mt-10">
+              <h2 className="font-heading text-2xl font-semibold text-forest-900">Causes &amp; Risk Factors</h2>
               <p className="mt-3 text-muted-foreground">{condition.causes}</p>
-            </section>
+            </Reveal>
           )}
 
           {treatmentOptions.length > 0 && (
-            <section className="mt-10">
-              <h2 className="font-heading text-2xl font-semibold">
+            <Reveal as="section" className="mt-10">
+              <h2 className="font-heading text-2xl font-semibold text-forest-900">
                 Types of {condition.name} Treatment We Offer
               </h2>
               <ol className="mt-4 flex flex-col gap-4">
@@ -147,7 +150,7 @@ export default async function ConditionPage({
                     (p) => p.name.toLowerCase().startsWith(option.title.toLowerCase())
                   );
                   return (
-                    <li key={i} className="rounded-xl border border-border bg-card p-5">
+                    <li key={i} className="rounded-xl border border-border bg-card p-5 shadow-soft-sm">
                       <p className="font-heading font-semibold text-card-foreground">
                         {i + 1}. {option.title}
                       </p>
@@ -155,7 +158,7 @@ export default async function ConditionPage({
                       {procedure && (
                         <Link
                           href={`/treatments/${procedure.slug}`}
-                          className="mt-2 inline-flex items-center gap-1 text-sm font-medium text-brand hover:underline"
+                          className="mt-2 inline-flex items-center gap-1 text-sm font-medium text-forest-700 hover:underline"
                         >
                           Procedure details <ChevronRight className="size-3.5" />
                         </Link>
@@ -164,72 +167,77 @@ export default async function ConditionPage({
                   );
                 })}
               </ol>
-            </section>
+            </Reveal>
           )}
 
           {condition.whyChooseUsPoints.length > 0 && (
-            <section className="mt-10">
-              <h2 className="font-heading text-2xl font-semibold">
+            <Reveal as="section" className="mt-10">
+              <h2 className="font-heading text-2xl font-semibold text-forest-900">
                 Why Choose Aaravya Hospital for {condition.name} Treatment?
               </h2>
               <ul className="mt-4 flex flex-col gap-2.5">
                 {condition.whyChooseUsPoints.map((point, i) => (
                   <li key={i} className="flex items-start gap-2 text-sm text-muted-foreground">
-                    <CheckCircle2 className="mt-0.5 size-4 shrink-0 text-brand" />
+                    <CheckCircle2 className="mt-0.5 size-4 shrink-0 text-terracotta-600" />
                     {point}
                   </li>
                 ))}
               </ul>
-            </section>
+            </Reveal>
           )}
 
           {condition.faqs.length > 0 && (
-            <section className="mt-10">
-              <h2 className="font-heading text-2xl font-semibold">Frequently Asked Questions</h2>
+            <Reveal as="section" className="mt-10">
+              <h2 className="font-heading text-2xl font-semibold text-forest-900">Frequently Asked Questions</h2>
               <div className="mt-4 flex flex-col gap-3">
                 {condition.faqs.map((faq) => (
-                  <div key={faq.id} className="rounded-xl border border-border bg-card p-5">
+                  <div key={faq.id} className="rounded-xl border border-border bg-card p-5 shadow-soft-sm">
                     <p className="font-medium text-card-foreground">{faq.question}</p>
                     <p className="mt-2 text-sm text-muted-foreground">{faq.answer}</p>
                   </div>
                 ))}
               </div>
-            </section>
+            </Reveal>
           )}
 
           {(condition.closingHeading || condition.closingText) && (
-            <section className="mt-10 rounded-xl bg-[var(--secondary)] p-6">
+            <Reveal as="section" className="mt-10 rounded-xl bg-sage-100 p-6">
               {condition.closingHeading && (
-                <h2 className="font-heading text-xl font-semibold text-[var(--secondary-foreground)]">
+                <h2 className="font-heading text-xl font-semibold text-sage-900">
                   {condition.closingHeading}
                 </h2>
               )}
               {condition.closingText && (
-                <p className="mt-2 text-sm text-[var(--secondary-foreground)]/85">
+                <p className="mt-2 text-sm text-sage-800/90">
                   {condition.closingText}
                 </p>
               )}
-            </section>
+            </Reveal>
           )}
 
           <div className="mt-10 flex flex-wrap gap-3">
             <Button
               size="xl"
               render={<Link href={`/book?condition=${condition.slug}`} />}
-              className="bg-brand text-brand-foreground hover:bg-brand/90"
+              className="bg-brand text-brand-foreground hover:bg-terracotta-700"
             >
               Book a Consultation for {condition.name}
             </Button>
-            <Button size="xl" variant="outline" render={<a href="https://wa.me/918733889957" />}>
+            <Button
+              size="xl"
+              variant="outline"
+              render={<a href={contact.whatsappHref()} />}
+              className="border-forest-300 text-forest-800 hover:bg-forest-50"
+            >
               WhatsApp Us
             </Button>
           </div>
         </div>
 
         {/* Sidebar */}
-        <aside className="flex flex-col gap-6">
+        <aside className="flex flex-col gap-5 lg:sticky lg:top-24 lg:h-fit">
           {condition.reviewedByDoctor && (
-            <div className="rounded-xl border border-border bg-card p-5">
+            <div className="rounded-xl border border-border bg-card p-5 shadow-soft-sm">
               <p className="font-mono text-[0.65rem] uppercase tracking-wide text-muted-foreground">
                 Reviewed By
               </p>
@@ -244,7 +252,7 @@ export default async function ConditionPage({
                       alt={condition.reviewedByDoctor.name}
                       fill
                       sizes="48px"
-                      className="object-cover"
+                      className="object-cover object-top"
                     />
                   </div>
                 )}
@@ -262,7 +270,7 @@ export default async function ConditionPage({
           )}
 
           {sameCategory && sameCategory.conditions.length > 1 && (
-            <div className="rounded-xl border border-border bg-card p-5">
+            <div className="rounded-xl border border-border bg-card p-5 shadow-soft-sm">
               <p className="font-mono text-[0.65rem] uppercase tracking-wide text-muted-foreground">
                 {sameCategory.label}
               </p>
@@ -273,7 +281,7 @@ export default async function ConditionPage({
                     <li key={c.slug}>
                       <Link
                         href={`/conditions/${c.slug}`}
-                        className="block rounded-lg px-2 py-1.5 text-sm text-muted-foreground hover:bg-accent hover:text-foreground"
+                        className="block rounded-lg px-2 py-1.5 text-sm text-muted-foreground hover:bg-forest-50 hover:text-forest-800"
                       >
                         {c.name}
                       </Link>
@@ -283,13 +291,13 @@ export default async function ConditionPage({
             </div>
           )}
 
-          <div className="rounded-xl bg-brand p-5 text-brand-foreground">
+          <div className="rounded-xl bg-brand p-5 text-brand-foreground shadow-soft-md">
             <p className="font-heading font-semibold">Have questions?</p>
             <p className="mt-1 text-sm text-brand-foreground/85">
               Call us directly for a same-day opinion.
             </p>
-            <a href="tel:+918733889957" className="mt-3 block text-lg font-semibold">
-              +91 87338 89957
+            <a href={contact.phoneHref} className="mt-3 block text-lg font-semibold">
+              {contact.phone}
             </a>
           </div>
         </aside>

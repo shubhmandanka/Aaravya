@@ -1,0 +1,11 @@
+# Files a `vercel` CLI deploy must never upload.
+# Local database dumps can contain patient data.
+*.dump
+row_counts.sql
+
+# Local-only tooling and build output (Vercel installs and builds itself).
+node_modules
+.next
+docker-compose.yml
+Dockerfile
+.dockerignore

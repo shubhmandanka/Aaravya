@@ -7,7 +7,10 @@ import { CATEGORY_LABELS } from "@/lib/queries";
 import { deleteCondition } from "./actions";
 
 export default async function AdminConditionsPage() {
-  const conditions = await prisma.condition.findMany({ orderBy: { name: "asc" } });
+  const conditions = await prisma.condition.findMany({
+    orderBy: { name: "asc" },
+    select: { id: true, name: true, category: true },
+  });
 
   return (
     <div>
@@ -15,7 +18,7 @@ export default async function AdminConditionsPage() {
       <AdminTable
         columns={["Name", "Category", ""]}
         rows={conditions.map((c) => [
-          <Link key="name" href={`/admin/conditions/${c.id}`} className="font-medium hover:text-brand">
+          <Link key="name" href={`/admin/conditions/${c.id}`} className="font-medium hover:text-primary">
             {c.name}
           </Link>,
           CATEGORY_LABELS[c.category],

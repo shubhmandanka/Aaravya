@@ -1,21 +1,19 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { ConditionCategory } from "@/generated/prisma";
-
-function linesToArray(value: FormDataEntryValue | null): string[] {
-  return String(value ?? "")
-    .split("\n")
-    .map((s) => s.trim())
-    .filter(Boolean);
-}
-
-function toStringOrNull(value: FormDataEntryValue | null): string | null {
-  const s = String(value ?? "").trim();
-  return s.length > 0 ? s : null;
-}
+import {
+  AdminFormError,
+  adminAction,
+  enumValue,
+  linesToArray,
+  requiredString,
+  revalidatePublicSite,
+  toStringOrNull,
+  type FormState,
+} from "@/lib/admin/actions";
+import { deleteImage, keyFromUrl, saveWithImage } from "@/lib/storage";
 
 /** Encodes as "Title | Description" per line, matching the format shown in the form's help text. */
 function parseTreatmentOptions(value: FormDataEntryValue | null) {
@@ -29,13 +27,12 @@ function parseTreatmentOptions(value: FormDataEntryValue | null) {
 
 function readConditionForm(formData: FormData) {
   return {
-    slug: String(formData.get("slug")).trim(),
-    name: String(formData.get("name")).trim(),
-    category: String(formData.get("category")) as ConditionCategory,
-    heroImageUrl: toStringOrNull(formData.get("heroImageUrl")),
+    slug: requiredString(formData, "slug", "Slug"),
+    name: requiredString(formData, "name", "Name"),
+    category: enumValue(ConditionCategory, formData.get("category"), "category"),
     seoTitle: toStringOrNull(formData.get("seoTitle")),
     metaDescription: toStringOrNull(formData.get("metaDescription")),
-    directAnswer: String(formData.get("directAnswer")).trim(),
+    directAnswer: requiredString(formData, "directAnswer", "Direct answer"),
     introText: toStringOrNull(formData.get("introText")),
     definitionHeading: toStringOrNull(formData.get("definitionHeading")),
     definitionText: toStringOrNull(formData.get("definitionText")),
@@ -49,25 +46,54 @@ function readConditionForm(formData: FormData) {
   };
 }
 
-export async function createCondition(formData: FormData) {
-  const data = readConditionForm(formData);
-  await prisma.condition.create({ data });
-  revalidatePath("/admin/conditions");
-  revalidatePath("/conditions");
+export async function createCondition(_state: FormState, formData: FormData): Promise<FormState> {
+  const result = await adminAction(async () => {
+    const data = readConditionForm(formData);
+    await saveWithImage(formData, "heroImageUrl", "conditions", null, async (heroImageUrl) => {
+      await prisma.condition.create({ data: { ...data, heroImageUrl } });
+    });
+    revalidatePublicSite();
+  });
+  if (result) return result;
   redirect("/admin/conditions");
 }
 
-export async function updateCondition(id: string, formData: FormData) {
-  const data = readConditionForm(formData);
-  await prisma.condition.update({ where: { id }, data });
-  revalidatePath("/admin/conditions");
-  revalidatePath("/conditions");
-  revalidatePath(`/conditions/${data.slug}`);
+export async function updateCondition(id: string, _state: FormState, formData: FormData): Promise<FormState> {
+  const result = await adminAction(async () => {
+    const data = readConditionForm(formData);
+    const existing = await prisma.condition.findUniqueOrThrow({ where: { id }, select: { heroImageUrl: true } });
+    await saveWithImage(formData, "heroImageUrl", "conditions", existing.heroImageUrl, async (heroImageUrl) => {
+      await prisma.condition.update({ where: { id }, data: { ...data, heroImageUrl } });
+    });
+    revalidatePublicSite();
+  });
+  if (result) return result;
   redirect("/admin/conditions");
 }
 
-export async function deleteCondition(id: string) {
-  await prisma.condition.delete({ where: { id } });
-  revalidatePath("/admin/conditions");
-  revalidatePath("/conditions");
+function plural(n: number, word: string) {
+  return `${n} ${word}${n === 1 ? "" : "s"}`;
+}
+
+export async function deleteCondition(id: string): Promise<FormState> {
+  return adminAction(async () => {
+    const existing = await prisma.condition.findUniqueOrThrow({
+      where: { id },
+      select: { name: true, heroImageUrl: true, _count: { select: { procedures: true, locationPages: true } } },
+    });
+    // Procedures and location pages reference Condition with ON DELETE RESTRICT.
+    const { procedures, locationPages } = existing._count;
+    if (procedures || locationPages) {
+      const blockers = [procedures && plural(procedures, "procedure"), locationPages && plural(locationPages, "location page")]
+        .filter(Boolean)
+        .join(" and ");
+      const them = procedures + locationPages === 1 ? "it" : "them";
+      throw new AdminFormError(
+        `${existing.name} still has ${blockers}. Reassign ${them} to another condition or delete ${them} first, then delete this condition.`
+      );
+    }
+    await prisma.condition.delete({ where: { id } });
+    await deleteImage(keyFromUrl(existing.heroImageUrl));
+    revalidatePublicSite();
+  });
 }

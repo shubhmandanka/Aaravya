@@ -1,6 +1,9 @@
-import { Button } from "@/components/ui/button";
+import { AdminForm } from "@/components/admin/admin-form";
+import { AdminSubmitButton } from "@/components/admin/submit-button";
+import type { FormState } from "@/lib/admin/actions";
 import { Textarea } from "@/components/ui/textarea";
 import { Field, ADMIN_INPUT_CLASS } from "@/components/admin/form";
+import { ImageUploadField } from "@/components/admin/image-upload-field";
 import { CATEGORY_LABELS } from "@/lib/queries";
 import { treatmentOptionsToText } from "./format";
 import type { Condition } from "@/generated/prisma";
@@ -10,12 +13,12 @@ export function ConditionForm({
   condition,
   doctors,
 }: {
-  action: (formData: FormData) => Promise<void>;
+  action: (state: FormState, formData: FormData) => Promise<FormState>;
   condition?: Condition;
   doctors: { id: string; name: string }[];
 }) {
   return (
-    <form action={action} className="flex flex-col gap-5">
+    <AdminForm action={action} className="flex flex-col gap-5">
       <div className="grid gap-5 sm:grid-cols-2">
         <Field label="Slug" htmlFor="slug" help="Used in the URL: /conditions/[slug]">
           <input id="slug" name="slug" required defaultValue={condition?.slug} className={ADMIN_INPUT_CLASS} />
@@ -41,9 +44,7 @@ export function ConditionForm({
         </select>
       </Field>
 
-      <Field label="Hero Image Path" htmlFor="heroImageUrl" help="e.g. assets/img/treatment/piletreatment.png">
-        <input id="heroImageUrl" name="heroImageUrl" defaultValue={condition?.heroImageUrl ?? ""} className={ADMIN_INPUT_CLASS} />
-      </Field>
+      <ImageUploadField name="heroImageUrl" label="Hero Image" currentImageUrl={condition?.heroImageUrl} />
 
       <div className="grid gap-5 sm:grid-cols-2">
         <Field label="SEO Title" htmlFor="seoTitle">
@@ -121,9 +122,9 @@ export function ConditionForm({
         </select>
       </Field>
 
-      <Button type="submit" size="xl" className="mt-2 bg-brand text-brand-foreground hover:bg-brand/90">
+      <AdminSubmitButton size="xl" className="mt-2 bg-primary text-primary-foreground hover:bg-primary/90">
         Save Condition
-      </Button>
-    </form>
+      </AdminSubmitButton>
+    </AdminForm>
   );
 }

@@ -1,6 +1,9 @@
-import { Button } from "@/components/ui/button";
+import { AdminForm } from "@/components/admin/admin-form";
+import { AdminSubmitButton } from "@/components/admin/submit-button";
+import type { FormState } from "@/lib/admin/actions";
 import { Textarea } from "@/components/ui/textarea";
 import { Field, ADMIN_INPUT_CLASS } from "@/components/admin/form";
+import { ImageUploadField } from "@/components/admin/image-upload-field";
 import type { BlogPost } from "@/generated/prisma";
 
 export function BlogForm({
@@ -8,12 +11,12 @@ export function BlogForm({
   post,
   doctors,
 }: {
-  action: (formData: FormData) => Promise<void>;
+  action: (state: FormState, formData: FormData) => Promise<FormState>;
   post?: BlogPost;
   doctors: { id: string; name: string }[];
 }) {
   return (
-    <form action={action} className="flex flex-col gap-5">
+    <AdminForm action={action} className="flex flex-col gap-5">
       <div className="grid gap-5 sm:grid-cols-2">
         <Field label="Slug" htmlFor="slug" help="Used in the URL: /blog/[slug]">
           <input id="slug" name="slug" required defaultValue={post?.slug} className={ADMIN_INPUT_CLASS} />
@@ -35,13 +38,16 @@ export function BlogForm({
         <input id="excerpt" name="excerpt" defaultValue={post?.excerpt ?? ""} className={ADMIN_INPUT_CLASS} />
       </Field>
 
+      {/* Plain text today (Tiptap is installed but not wired in anywhere in
+          this codebase). If this field is ever upgraded to a Tiptap rich-text
+          editor whose output gets rendered as HTML on the public site,
+          sanitize it server-side (e.g. with a library like `isomorphic-dompurify`)
+          before rendering — never trust editor-produced HTML directly. */}
       <Field label="Body" htmlFor="body">
         <Textarea id="body" name="body" rows={10} required defaultValue={post?.body} />
       </Field>
 
-      <Field label="Hero Image Path" htmlFor="heroImageUrl">
-        <input id="heroImageUrl" name="heroImageUrl" defaultValue={post?.heroImageUrl ?? ""} className={ADMIN_INPUT_CLASS} />
-      </Field>
+      <ImageUploadField name="heroImageUrl" label="Hero Image" currentImageUrl={post?.heroImageUrl} />
 
       <Field label="Tags" htmlFor="tags" help="One per line">
         <Textarea id="tags" name="tags" rows={2} defaultValue={post?.tags.join("\n") ?? ""} />
@@ -63,9 +69,9 @@ export function BlogForm({
         Published (visible on site)
       </label>
 
-      <Button type="submit" size="xl" className="mt-2 bg-brand text-brand-foreground hover:bg-brand/90">
+      <AdminSubmitButton size="xl" className="mt-2 bg-primary text-primary-foreground hover:bg-primary/90">
         Save Article
-      </Button>
-    </form>
+      </AdminSubmitButton>
+    </AdminForm>
   );
 }

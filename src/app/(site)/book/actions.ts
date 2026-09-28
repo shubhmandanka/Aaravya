@@ -2,6 +2,7 @@
 
 import { appointmentSchema } from "@/lib/validations/appointment";
 import { createAppointment } from "@/lib/appointments";
+import { getContactDetails } from "@/lib/queries";
 
 export type BookingActionResult =
   | { ok: true; appointmentId: string }
@@ -18,6 +19,7 @@ export async function submitBooking(raw: unknown): Promise<BookingActionResult> 
     return { ok: true, appointmentId: appointment.id };
   } catch (err) {
     console.error("Failed to create appointment:", err);
-    return { ok: false, message: "Something went wrong on our end. Please call us directly at +91 87338 89957." };
+    const { phone } = await getContactDetails().catch(() => ({ phone: "+91 87338 89957" }));
+    return { ok: false, message: `Something went wrong on our end. Please call us directly at ${phone}.` };
   }
 }

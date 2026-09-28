@@ -5,6 +5,12 @@ generator client {
 
 datasource db {
   provider = "postgresql"
+  // Prisma 7 removed `url`/`directUrl` from the schema's datasource block
+  // entirely — the CLI's connection now comes solely from `datasource.url`
+  // in `prisma.config.ts` (see that file for why it's pointed at DIRECT_URL,
+  // not DATABASE_URL). The app's own runtime queries are unaffected: they go
+  // through the separate @prisma/adapter-pg driver adapter in
+  // `src/lib/prisma.ts`, which uses the pooled DATABASE_URL directly.
 }
 
 enum ConditionCategory {
@@ -58,8 +64,14 @@ enum MediaType {
   VIDEO
 }
 
-enum AdminRole {
-  ADMIN
+/// Standardised website price bands (the ranges themselves live in src/lib/cost-bands.ts).
+enum CostBand {
+  LOWER
+  MODERATE
+  HIGHER
+  ADVANCED
+  CONSULTATION
+  AFTER_CONSULTATION
 }
 
 model Doctor {
@@ -81,6 +93,8 @@ model Doctor {
   linkedinUrl          String?
   phone                String?
   isFeatured           Boolean  @default(false)
+  /// Display order wherever doctors are listed (lowest first).
+  sortOrder            Int      @default(0)
   createdAt            DateTime @default(now())
   updatedAt            DateTime @updatedAt
 
@@ -89,6 +103,9 @@ model Doctor {
   testimonials       Testimonial[]
   blogPosts          BlogPost[]
   appointments       Appointment[]
+
+  @@index([isFeatured])
+  @@index([sortOrder])
 }
 
 model Condition {
@@ -123,7 +140,11 @@ model Condition {
   appointments       Appointment[]
   locationPages      LocationLandingPage[]
   costEstimatorRules CostEstimatorRule[]
+  costCategories     CostCategory[]
   symptomSessions    SymptomCheckSession[]
+
+  @@index([category])
+  @@index([reviewedByDoctorId])
 }
 
 model Procedure {
@@ -142,11 +163,15 @@ model Procedure {
   successRate         String?
   costMin             Int?
   costMax             Int?
+  imageUrl            String?
   downloadablePdfUrl  String?
   lastUpdatedAt       DateTime  @updatedAt
   createdAt           DateTime  @default(now())
 
   costEstimatorRules CostEstimatorRule[]
+
+  @@index([conditionId])
+  @@index([doctorId])
 }
 
 model LocationLandingPage {
@@ -161,6 +186,8 @@ model LocationLandingPage {
   paragraphs      String[]
   createdAt       DateTime  @default(now())
   updatedAt       DateTime  @updatedAt
+
+  @@index([conditionId])
 }
 
 model Faq {
@@ -174,6 +201,9 @@ model Faq {
   sortOrder   Int        @default(0)
   createdAt   DateTime   @default(now())
   updatedAt   DateTime   @updatedAt
+
+  @@index([conditionId])
+  @@index([pageContext, sortOrder])
 }
 
 model Testimonial {
@@ -192,6 +222,11 @@ model Testimonial {
   isFeatured        Boolean            @default(false)
   isApproved        Boolean            @default(false)
   createdAt         DateTime           @default(now())
+
+  @@index([conditionId])
+  @@index([doctorId])
+  @@index([isApproved])
+  @@index([isFeatured])
 }
 
 model MediaItem {
@@ -203,6 +238,8 @@ model MediaItem {
   caption   String?
   sortOrder Int           @default(0)
   createdAt DateTime      @default(now())
+
+  @@index([category, sortOrder])
 }
 
 model Appointment {
@@ -226,6 +263,11 @@ model Appointment {
   updatedAt         DateTime           @updatedAt
 
   symptomSession SymptomCheckSession?
+
+  @@index([status])
+  @@index([createdAt])
+  @@index([conditionId])
+  @@index([doctorId])
 }
 
 model SymptomCheckSession {
@@ -237,6 +279,8 @@ model SymptomCheckSession {
   resultingAppointmentId String?      @unique
   resultingAppointment   Appointment? @relation(fields: [resultingAppointmentId], references: [id])
   createdAt              DateTime     @default(now())
+
+  @@index([conditionGuessId])
 }
 
 model BlogPost {
@@ -253,6 +297,9 @@ model BlogPost {
   isPublished        Boolean     @default(false)
   lastUpdatedAt      DateTime    @updatedAt
   createdAt          DateTime    @default(now())
+
+  @@index([isPublished])
+  @@index([reviewedByDoctorId])
 }
 
 model CostEstimatorRule {
@@ -268,6 +315,46 @@ model CostEstimatorRule {
   notes         String?
   createdAt     DateTime      @default(now())
   updatedAt     DateTime      @updatedAt
+
+  @@index([procedureId])
+  @@index([conditionId])
+}
+
+/// Step 1 of the public cost estimator (e.g. "Piles / Hemorrhoids").
+model CostCategory {
+  id          String          @id @default(cuid())
+  slug        String          @unique
+  name        String
+  /// Pre-selects this condition when a patient books from the estimator.
+  conditionId String?
+  condition   Condition?      @relation(fields: [conditionId], references: [id], onDelete: SetNull)
+  sortOrder   Int             @default(0)
+  treatments  CostTreatment[]
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
+
+  @@index([sortOrder])
+  @@index([conditionId])
+}
+
+/// Step 2 of the public cost estimator: one selectable treatment and its estimate band.
+model CostTreatment {
+  id            String       @id @default(cuid())
+  categoryId    String
+  category      CostCategory @relation(fields: [categoryId], references: [id], onDelete: Restrict)
+  name          String
+  medicalName   String?
+  effectiveness String?
+  costLevel     String?
+  discomfort    String?
+  recovery      String?
+  band          CostBand
+  sortOrder     Int          @default(0)
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
+
+  @@unique([categoryId, name])
+  @@index([categoryId, sortOrder])
 }
 
 model Location {
@@ -283,19 +370,12 @@ model Location {
   isPrimary         Boolean  @default(true)
   createdAt         DateTime @default(now())
   updatedAt         DateTime @updatedAt
+
+  @@index([isPrimary])
 }
 
 model SiteSetting {
   key       String   @id
   value     String
   updatedAt DateTime @updatedAt
-}
-
-model AdminUser {
-  id           String    @id @default(cuid())
-  email        String    @unique
-  passwordHash String
-  name         String?
-  role         AdminRole @default(ADMIN)
-  createdAt    DateTime  @default(now())
 }

@@ -113,6 +113,8 @@ export const ANONYMOUS_CATEGORIES: AnonymousCategoryContent[] = [
   },
 ];
 
+export const ANONYMOUS_WHATSAPP_MESSAGE = "Hi, I'd like to request an anonymous video consultation.";
+
 export function getAnonymousCategory(slug: string) {
   return ANONYMOUS_CATEGORIES.find((c) => c.slug === slug);
 }
