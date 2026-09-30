@@ -295,3 +295,18 @@ All tables were returned to their baseline and all buckets were left empty after
   - `https://aaravya.vercel.app/about` has a canonical of `https://www.aaravyahospital.com/about`.
   - The bare domain still 308-redirects to www, and missing pages still return 404.
   - (65 URLs rather than 64: a blog post published in the admin since the last deploy.)
+
+## Vercel Git builds failing (`npm install` exited with 1)
+
+1 Oct 2026. Since the repo transfer, Vercel also builds each push from GitHub, and the first of these (commit `9c30af3`) failed.
+
+- **Not a lockfile problem.** `npm ci` on that commit's `package.json` and `package-lock.json` succeeds (831 packages).
+- **The cause:** the `postinstall` step (`prisma generate`) failed with `PrismaConfigEnvError: Cannot resolve environment variable: DIRECT_URL`.
+  - Prisma's `env()` helper in `prisma.config.ts` throws when the variable is unset.
+  - A fresh Git clone has no `.env` (it's gitignored), and the Vercel project has no environment variables.
+  - The CLI deploys never hit this, because they upload the local `.env`.
+- **The fix (`22f1aa6`):** `prisma.config.ts` now reads `process.env.DIRECT_URL` directly.
+  - Reproduced and verified in a clean copy with no env: `prisma generate` now succeeds.
+  - `prisma migrate status` with no env still fails clearly ("datasource.url property is required").
+  - With the real `.env`, `migrate status` still reaches Supabase ("Database schema is up to date").
+- **Still needed from you: environment variables in Vercel.** Git builds prerender the public pages from the database, so past `npm install` they also need `DATABASE_URL` and the Supabase keys. This is item 2 under *Needs my input*. I don't enter secrets into dashboards. Once they're added, Git builds work, and `.env*` can go into `.vercelignore`.
