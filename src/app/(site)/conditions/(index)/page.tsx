@@ -8,6 +8,7 @@ import { Reveal, RevealGroup, RevealItem } from "@/components/site/reveal";
 import { getConditionsGroupedByCategory } from "@/lib/queries";
 
 export const metadata: Metadata = {
+  alternates: { canonical: "/conditions" },
   title: "Conditions & Treatments",
   description:
     "Proctology, general surgery, urology, and peripheral vascular conditions treated at Aaravya Hospital, Chandkheda, Ahmedabad.",

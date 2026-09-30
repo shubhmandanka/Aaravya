@@ -8,6 +8,7 @@ import { legacyAsset } from "@/lib/assets";
 import { getAllDoctors } from "@/lib/queries";
 
 export const metadata: Metadata = {
+  alternates: { canonical: "/doctors" },
   title: "Our Doctors",
   description: "Meet the doctors at Aaravya Hospital, Chandkheda, Ahmedabad.",
 };

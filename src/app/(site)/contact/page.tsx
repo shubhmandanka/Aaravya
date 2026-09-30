@@ -5,6 +5,7 @@ import { Reveal, RevealGroup, RevealItem } from "@/components/site/reveal";
 import { getPrimaryLocation } from "@/lib/queries";
 
 export const metadata: Metadata = {
+  alternates: { canonical: "/contact" },
   title: "Contact Us",
   description: "Contact Aaravya Hospital, Chandkheda, Ahmedabad — phone, WhatsApp, email, and directions.",
 };

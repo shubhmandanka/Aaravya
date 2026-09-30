@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Outfit, Inter, IBM_Plex_Mono } from "next/font/google";
 import { MotionConfig } from "framer-motion";
+import { SITE_URL } from "@/lib/schema";
 import "./globals.css";
 
 const outfit = Outfit({
@@ -22,6 +23,10 @@ const plexMono = IBM_Plex_Mono({
 });
 
 export const metadata: Metadata = {
+  // Resolves each page's relative canonical (and Open Graph image) URLs
+  // against the real domain. Canonicals are set per page, never here: a
+  // canonical in this layout would be inherited by every page without one.
+  metadataBase: new URL(SITE_URL),
   title: {
     default: "Aaravya Hospital — Proctology & Colorectal Care, Ahmedabad",
     template: "%s | Aaravya Hospital",

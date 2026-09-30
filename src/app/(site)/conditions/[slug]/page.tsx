@@ -34,6 +34,7 @@ export async function generateMetadata({
   return {
     title: { absolute: condition.seoTitle ?? `${condition.name} | Aaravya Hospital` },
     description: condition.metaDescription ?? condition.directAnswer,
+    alternates: { canonical: `/conditions/${condition.slug}` },
   };
 }
 

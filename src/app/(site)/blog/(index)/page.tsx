@@ -8,6 +8,7 @@ import { legacyAsset } from "@/lib/assets";
 import { getPublishedBlogPosts } from "@/lib/queries";
 
 export const metadata: Metadata = {
+  alternates: { canonical: "/blog" },
   title: "Health Library",
   description: "Symptom guides, treatment explainers, and patient FAQs from Aaravya Hospital.",
 };

@@ -23,6 +23,7 @@ export async function generateMetadata({
   return {
     title: `Anonymous Consultation — ${category.label}`,
     description: category.headline,
+    alternates: { canonical: `/anonymous-consultation/${category.slug}` },
   };
 }
 

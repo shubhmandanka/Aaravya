@@ -27,6 +27,7 @@ export async function generateMetadata({
   return {
     title: procedure.name,
     description: procedure.description.slice(0, 155),
+    alternates: { canonical: `/treatments/${procedure.slug}` },
   };
 }
 

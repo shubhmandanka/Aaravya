@@ -7,6 +7,7 @@ import { ConfidentialityBadge } from "@/components/confidentiality-badge";
 import { Reveal, RevealGroup, RevealItem } from "@/components/site/reveal";
 
 export const metadata: Metadata = {
+  alternates: { canonical: "/anonymous-consultation" },
   title: "Anonymous Video Consultation",
   description:
     "A fully confidential video consultation at Aaravya Hospital — no full name required, camera optional, nickname welcome.",

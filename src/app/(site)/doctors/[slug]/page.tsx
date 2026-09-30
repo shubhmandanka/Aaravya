@@ -27,6 +27,7 @@ export async function generateMetadata({
   return {
     title: doctor.name,
     description: `${doctor.name} — ${doctor.designation} at Aaravya Hospital, Chandkheda, Ahmedabad.`,
+    alternates: { canonical: `/doctors/${doctor.slug}` },
   };
 }
 

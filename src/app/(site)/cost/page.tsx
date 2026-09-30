@@ -11,6 +11,7 @@ import { getContactDetails, getCostEstimator } from "@/lib/queries";
 import { CostEstimator, type EstimatorCategory } from "./cost-estimator";
 
 export const metadata: Metadata = {
+  alternates: { canonical: "/cost" },
   title: "Treatment Cost Estimator",
   description:
     "Estimated treatment costs for piles, fissure, fistula, pilonidal sinus and other proctology treatments at Aaravya Hospital, Ahmedabad.",
