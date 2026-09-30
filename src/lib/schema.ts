@@ -1,6 +1,19 @@
 import { legacyAsset } from "@/lib/assets";
 
-export const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://www.aaravyahospital.com";
+/** The live site's primary host (the bare domain 308-redirects here on Vercel). */
+export const PRODUCTION_SITE_URL = "https://www.aaravyahospital.com";
+
+/**
+ * Origin for the sitemap, robots.txt, canonical tags and JSON-LD. Every
+ * Vercel build (production and previews) uses the production domain, so
+ * previews and the aaravya.vercel.app alias canonicalise to the real site,
+ * and no deploy can publish the uploaded .env's localhost value or a
+ * staging host. Elsewhere (local dev, local production builds)
+ * NEXT_PUBLIC_SITE_URL still points it at the local server.
+ */
+export const SITE_URL = process.env.VERCEL
+  ? PRODUCTION_SITE_URL
+  : (process.env.NEXT_PUBLIC_SITE_URL ?? PRODUCTION_SITE_URL);
 
 export function absoluteUrl(path: string) {
   return `${SITE_URL}${path.startsWith("/") ? path : `/${path}`}`;

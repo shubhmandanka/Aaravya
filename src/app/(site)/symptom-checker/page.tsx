@@ -5,6 +5,7 @@ import { Reveal } from "@/components/site/reveal";
 import { getContactDetails } from "@/lib/queries";
 
 export const metadata: Metadata = {
+  alternates: { canonical: "/symptom-checker" },
   title: "AI Symptom Checker",
   description: "A private, guided symptom check for anorectal symptoms — not a diagnosis.",
 };

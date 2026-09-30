@@ -1,5 +1,5 @@
 import "dotenv/config";
-import { defineConfig, env } from "prisma/config";
+import { defineConfig } from "prisma/config";
 
 // Prisma 7 removed the `directUrl` concept entirely (from both
 // schema.prisma and this config's `datasource` option) — there is now only
@@ -22,7 +22,12 @@ export default defineConfig({
     path: "prisma/migrations",
     seed: "tsx prisma/seed.ts",
   },
+  // Read directly rather than via Prisma's env() helper, which throws when
+  // the variable is unset. `prisma generate` (the npm postinstall step)
+  // needs no database, and it runs in environments without DIRECT_URL,
+  // e.g. a Vercel Git build before project env vars exist. Commands that do
+  // connect (migrate, db pull) still fail clearly if it's missing.
   datasource: {
-    url: env("DIRECT_URL"),
+    url: process.env.DIRECT_URL,
   },
 });

@@ -6,6 +6,7 @@ import { TestimonialQuoteCard } from "@/components/site/testimonial-quote-card";
 import { getApprovedTestimonials, getMediaByCategory } from "@/lib/queries";
 
 export const metadata: Metadata = {
+  alternates: { canonical: "/testimonials" },
   title: "Patient Testimonials",
   description: "Patient stories and testimonials from Aaravya Hospital, Chandkheda, Ahmedabad.",
 };

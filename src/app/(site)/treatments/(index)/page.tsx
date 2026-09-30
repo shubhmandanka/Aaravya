@@ -8,6 +8,7 @@ import { legacyAsset } from "@/lib/assets";
 import { getProceduresGroupedByCategory } from "@/lib/queries";
 
 export const metadata: Metadata = {
+  alternates: { canonical: "/treatments" },
   title: "Surgical Techniques",
   description:
     "Laser, minimally invasive and surgical techniques used at Aaravya Hospital, Chandkheda, Ahmedabad — grouped by specialty.",
