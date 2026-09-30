@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import { ArrowRight, ShieldCheck, Stethoscope, Users } from "lucide-react";
@@ -14,6 +15,11 @@ import {
   getFaqs,
   getMediaByCategory,
 } from "@/lib/queries";
+
+// Title and description come from the root layout's defaults.
+export const metadata: Metadata = {
+  alternates: { canonical: "/" },
+};
 
 export default async function Home() {
   const [conditionGroups, doctors, faqs, testimonialImages, featuredQuotes] = await Promise.all([

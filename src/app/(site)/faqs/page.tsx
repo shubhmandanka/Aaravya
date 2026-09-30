@@ -12,6 +12,7 @@ import { JsonLd } from "@/components/json-ld";
 import { faqPageSchema } from "@/lib/schema";
 
 export const metadata: Metadata = {
+  alternates: { canonical: "/faqs" },
   title: "Frequently Asked Questions",
   description:
     "Answers to common questions about piles, fissure, fistula, and other conditions treated at Aaravya Hospital.",

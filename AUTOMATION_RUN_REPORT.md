@@ -6,10 +6,10 @@ Unattended run, 25 Sept 2026, on branch `redeveloping-aaravya`. Covers the rest 
 
 | | |
 |---|---|
-| **Now live** | `dpl_G3JAgsDYdD28oJp3JkHwnnfS4Tma` (`aaravya-ajqt54tr3-shubham-mandankas-projects.vercel.app`), Round 2 + soft-404 fix, commit `007aefe`, aliased to **https://aaravya.vercel.app** |
-| **Previous production** | `dpl_4wHMP277vMLMtVSwZgWkbvKazuG7` (`aaravya-gvt2uga7y-…`, Round 2 without the soft-404 fix). Before that: `dpl_CHbCh1JnfqtJP6c3e6Zddvd99UES` (Round 1). |
+| **Now live** | `dpl_Djk2DyvcmCYwsh5r2H7kVCQrE4QS` (`aaravya-6u27auzo3-shubham-mandankas-projects.vercel.app`): production-domain URLs and canonicals. Served at **https://www.aaravyahospital.com** (primary; the bare domain 308-redirects to it) and at https://aaravya.vercel.app. |
+| **Previous production** | `dpl_G3JAgsDYdD28oJp3JkHwnnfS4Tma` (`aaravya-ajqt54tr3-…`, soft-404 fix, with staging URLs in the sitemap and JSON-LD). Before that: `dpl_4wHMP277vMLMtVSwZgWkbvKazuG7`. |
 | **Branch** | `redeveloping-aaravya` on **github.com/shubhmandanka/Aaravya** (the authoritative repo; ownership was transferred from KavishEvil/Aaravya). |
-| **Rollback, if ever needed** | `vercel rollback dpl_4wHMP277vMLMtVSwZgWkbvKazuG7`. No schema changes since, so it runs against the current database. |
+| **Rollback, if ever needed** | `vercel rollback dpl_G3JAgsDYdD28oJp3JkHwnnfS4Tma`. Note that this would bring back the `aaravya.vercel.app` URLs in the sitemap and JSON-LD. No schema changes since. |
 
 **How it was deployed.**
 - A preview deploy came first, checked page by page via `vercel curl`, then `vercel --prod`.
@@ -29,9 +29,9 @@ Items I couldn't or shouldn't resolve alone. Everything else is done.
 1. **Sign in to the admin again.** A QA helper of mine submitted the sidebar "Sign Out" form by mistake, which ended the admin session. I don't enter passwords on your behalf, so the rest of the admin QA ran on an isolated QA copy with the auth check stubbed (see *How admin QA ran*). No data was affected. Once you're signed in, one quick real-login smoke test on the live site (edit something, check it on the public page) would close the loop.
 2. **Production secrets live in an uploaded `.env` file, not in Vercel.** The Vercel project has **no environment variables**. Both the old and new deployments got their database and Supabase configuration because the CLI uploads the project's `.env`, which includes the Supabase service-role key. I kept that mechanism, since I don't enter secrets into dashboards. Recommended:
    - add the variables under Vercel → Project → Settings → Environment Variables (`DATABASE_URL`, `DIRECT_URL`, `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`, SMTP settings);
-   - set `NEXT_PUBLIC_SITE_URL=https://aaravya.vercel.app` (or the real domain);
+   - (`NEXT_PUBLIC_SITE_URL` is no longer needed on Vercel; it only affects local builds);
    - then add `.env*` to `.vercelignore`.
-   Until then, **every future deploy must pass** `--build-env NEXT_PUBLIC_SITE_URL=https://aaravya.vercel.app`, or the sitemap and structured data will point to `localhost`.
+   The site URL no longer depends on this. Since the production-domain fix, every Vercel build uses `https://www.aaravyahospital.com` from code (`src/lib/schema.ts`), so no `--build-env` flag is needed.
 3. **Booking emails don't send on the live site.** `.env` has `SMTP_HOST=localhost` (a local mail catcher). Bookings still save and appear in the admin inbox, but neither the coordinator notification nor the patient confirmation email is delivered. This needs real SMTP credentials.
 4. **Review two Cost Estimator wording decisions** (details under *Cost Estimator overhaul*): the disclaimer text I wrote, and whether the tariff figures (30% OT charge, ₹8,000 laser surcharge, ₹3,000/₹5,000 anaesthesia) should be public.
 5. ~~Review the PDF layout once.~~ No longer applicable: the PDF price list was removed in Round 2 at the client's request.
@@ -268,3 +268,45 @@ All tables were returned to their baseline and all buckets were left empty after
     - unknown paths and `/cost/price-list.pdf` return 404;
     - all 64 sitemap URLs, `/book`, `/admin/login` and `robots.txt` return 200;
     - doctor order is unchanged (Deep, then Dipti).
+
+## Production domain: sitemap, canonical and JSON-LD URLs
+
+1 Oct 2026, after the domain was connected.
+
+- **The problem:**
+  - Every sitemap `<loc>`, the `robots.txt` `Sitemap:` line and every JSON-LD URL used `https://aaravya.vercel.app`.
+  - The source wasn't a hard-coded constant. `SITE_URL` (`src/lib/schema.ts`) read `NEXT_PUBLIC_SITE_URL`, which Next bakes in at build time, and each deploy had passed `--build-env NEXT_PUBLIC_SITE_URL=https://aaravya.vercel.app` to override the uploaded `.env`'s `localhost`.
+  - Canonical tags didn't exist at all: there was no `metadataBase` and no `alternates.canonical`.
+- **Host:** `https://www.aaravyahospital.com` (confirmed by you). On Vercel the bare domain 308-redirects to www, and sitemap and canonical URLs must be the final address.
+- **The fix:**
+  - `SITE_URL` is now always `PRODUCTION_SITE_URL` (`https://www.aaravyahospital.com`) on any Vercel build (`process.env.VERCEL`), for production and previews alike. Locally it still follows `NEXT_PUBLIC_SITE_URL`.
+  - This removes the `--build-env` dependency, so a deploy can't publish staging or `localhost` URLs again.
+  - The sitemap, `robots.txt` and all JSON-LD already built their URLs from `SITE_URL`, so they follow automatically.
+  - **Canonicals:**
+    - `metadataBase: new URL(SITE_URL)` in the root layout;
+    - a self-referencing `alternates.canonical` on every public page (the homepage, the 14 static pages and the 5 dynamic routes);
+    - it's set per page, not in a layout, so no page inherits the wrong canonical;
+    - missing pages (404s) get none;
+    - `aaravya.vercel.app` and preview URLs now canonicalise to www.
+- **Verified on the live site (https://www.aaravyahospital.com):**
+  - All 65 sitemap URLs are on www. Each one returns 200, has a canonical equal to its own URL, and contains no `aaravya.vercel.app` or `localhost` references.
+  - `robots.txt` points to `https://www.aaravyahospital.com/sitemap.xml`.
+  - The JSON-LD on a doctor page and a blog post uses www URLs; the images are Supabase Storage URLs.
+  - `https://aaravya.vercel.app/about` has a canonical of `https://www.aaravyahospital.com/about`.
+  - The bare domain still 308-redirects to www, and missing pages still return 404.
+  - (65 URLs rather than 64: a blog post published in the admin since the last deploy.)
+
+## Vercel Git builds failing (`npm install` exited with 1)
+
+1 Oct 2026. Since the repo transfer, Vercel also builds each push from GitHub, and the first of these (commit `9c30af3`) failed.
+
+- **Not a lockfile problem.** `npm ci` on that commit's `package.json` and `package-lock.json` succeeds (831 packages).
+- **The cause:** the `postinstall` step (`prisma generate`) failed with `PrismaConfigEnvError: Cannot resolve environment variable: DIRECT_URL`.
+  - Prisma's `env()` helper in `prisma.config.ts` throws when the variable is unset.
+  - A fresh Git clone has no `.env` (it's gitignored), and the Vercel project has no environment variables.
+  - The CLI deploys never hit this, because they upload the local `.env`.
+- **The fix (`22f1aa6`):** `prisma.config.ts` now reads `process.env.DIRECT_URL` directly.
+  - Reproduced and verified in a clean copy with no env: `prisma generate` now succeeds.
+  - `prisma migrate status` with no env still fails clearly ("datasource.url property is required").
+  - With the real `.env`, `migrate status` still reaches Supabase ("Database schema is up to date").
+- **Still needed from you: environment variables in Vercel.** Git builds prerender the public pages from the database, so past `npm install` they also need `DATABASE_URL` and the Supabase keys. This is item 2 under *Needs my input*. I don't enter secrets into dashboards. Once they're added, Git builds work, and `.env*` can go into `.vercelignore`.

@@ -3,6 +3,7 @@ import { PageHero } from "@/components/site/page-hero";
 import { Reveal } from "@/components/site/reveal";
 
 export const metadata: Metadata = {
+  alternates: { canonical: "/privacy" },
   title: "Privacy Approach",
   description: "How Aaravya Hospital handles your information, especially for anonymous consultation requests.",
 };

@@ -5,6 +5,7 @@ import { GalleryGrid } from "@/components/site/gallery-grid";
 import { getMediaByCategory } from "@/lib/queries";
 
 export const metadata: Metadata = {
+  alternates: { canonical: "/gallery" },
   title: "Gallery",
   description: "Photos from Aaravya Hospital — happy patients, our facility, and procedures.",
 };

@@ -9,6 +9,7 @@ import { legacyAsset } from "@/lib/assets";
 import { getAllDoctors, getPrimaryLocation } from "@/lib/queries";
 
 export const metadata: Metadata = {
+  alternates: { canonical: "/about" },
   title: "About Us",
   description: "About Aaravya Hospital, Chandkheda, Ahmedabad — our facility, doctors, and approach to care.",
 };

@@ -7,6 +7,7 @@ import { DOCTOR_ORDER } from "@/lib/queries";
 import { BookingForm } from "./booking-form";
 
 export const metadata: Metadata = {
+  alternates: { canonical: "/book" },
   title: "Book an Appointment",
   description: "Book an in-clinic visit or teleconsultation at Aaravya Hospital, Chandkheda, Ahmedabad.",
 };
